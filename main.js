@@ -32,6 +32,11 @@ function populate (type, data) {
     var li = document.createElement('li')
     li.appendChild(document.createTextNode(data[i].word))
     list.appendChild(li)
+
+    // On click, copy text to the clipboard
+    li.addEventListener('click', function () {
+      (t => navigator.clipboard.writeText(t))(this.innerText)
+    })
   }
 }
 

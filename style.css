@@ -51,7 +51,8 @@ h2 {
   padding-bottom: 0.5em;
 }
 
-h2:hover {
+h2:hover,
+li:hover {
   color: grey;
   cursor: pointer;
 }
