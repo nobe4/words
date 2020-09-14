@@ -68,6 +68,12 @@ li {
   padding: 0.5em;
 }
 
+li.copied,
+li.copied:hover {
+  color: blue;
+  transition: color 0.7s ease 0.3s;
+}
+
 a#reference {
   display: block;
   text-align: right;
