@@ -53,7 +53,7 @@ h2 {
 
 h2:hover,
 li:hover {
-  color: grey;
+  text-decoration: underline;
   cursor: pointer;
 }
 
@@ -71,7 +71,7 @@ li {
 li.copied,
 li.copied:hover {
   color: blue;
-  transition: color 0.7s ease 0.3s;
+  transition: all 0.1s 0s ease-in-out;
 }
 
 a#reference {

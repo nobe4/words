@@ -1,7 +1,7 @@
 /* global fetch history */
 'use strict'
 
-const api = 'https://api.datamuse.com/words?{1}={2}'
+const api = 'https://api.datamuse.com/words?{1}={2}&md=d'
 const types = {
   synonyms: 'rel_syn',
   antonyms: 'rel_ant',
@@ -34,13 +34,19 @@ Array.from(document.getElementsByTagName('h2')).forEach((e) => {
   })
 })
 
-// populate fills the list with the results
+// Populate fills the list with the results
 function populate (type, data) {
   var list = document.getElementById(type)
   list.innerHTML = '' // clear list
 
   for (var i = 0; i < data.length; i++) {
     var li = document.createElement('li')
+
+    // Add definitions in tooltip
+    if (data[i].defs) {
+      li.title = (data[i].defs).join('\n').replaceAll('\t', ': ')
+    }
+
     li.appendChild(document.createTextNode(data[i].word))
     list.appendChild(li)
 
