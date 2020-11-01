@@ -4,7 +4,7 @@ body {
   font-family: Arial;
 }
 
-#search {
+input {
   display: block;
   min-width: 100px;
   width: 500px;

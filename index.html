@@ -7,24 +7,25 @@
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body>
-    <div id="main">
-      <input id="search" type="text" placeholder="type and press enter" />
+    <div id="app">
+      <input
+        type="text"
+        placeholder="type and press enter"
+        @change="pushHistory"
+        v-model.lazy.trim="searchTerm"
+      />
       <div id="results">
-        <div>
-          <h2>Synonyms</h2>
-          <ul id="synonyms"></ul>
-        </div>
-        <div>
-          <h2>Antonyms</h2>
-          <ul id="antonyms"></ul>
-        </div>
-        <div>
-          <h2>Rhymes</h2>
-          <ul id="rhymes"></ul>
-        </div>
+        <column
+          v-for="column in columns"
+          :type="column.type"
+          :search-key="column.searchKey"
+          :search-term="searchTerm"
+          @search-for-term="searchForTerm"
+        ></column>
       </div>
     </div>
     <a id="reference" href="http://www.datamuse.com/api/">Reference</a>
+    <script src="vue.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

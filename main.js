@@ -1,80 +1,143 @@
-/* global fetch history */
+/* global Vue fetch history $emit */
 'use strict'
 
-const api = 'https://api.datamuse.com/words?{1}={2}&md=d'
-const types = {
-  synonyms: 'rel_syn',
-  antonyms: 'rel_ant',
-  rhymes: 'rel_rhy'
-}
-
-// Define input listener for 'Enter' key.
-const input = document.getElementById('search')
-input.addEventListener('keydown', function onEvent (event) {
-  if (event.key === 'Enter' && input.value) {
-    search(input.value)
-  }
-})
-
-window.addEventListener('popstate', function () {
-  window.location.reload()
-})
-
-// Parse existing query parameters
-const query = (new URL(window.location)).searchParams.get('q')
-if (query) {
-  input.value = query
-  search(query)
-}
-
-// Add collapse toggles on titles.
-Array.from(document.getElementsByTagName('h2')).forEach((e) => {
-  e.addEventListener('click', function () {
-    e.parentElement.classList.toggle('collapsed')
-  })
-})
-
-// Populate fills the list with the results
-function populate (type, data) {
-  var list = document.getElementById(type)
-  list.innerHTML = '' // clear list
-
-  for (var i = 0; i < data.length; i++) {
-    var li = document.createElement('li')
-
-    // Add definitions in tooltip
-    if (data[i].defs) {
-      li.title = (data[i].defs).join('\n').replaceAll('\t', ': ')
+const app = Vue.createApp({
+  data () {
+    return {
+      searchTerm: '',
+      columns: [
+        { type: 'Synonyms', searchKey: 'rel_syn' },
+        { type: 'Antonyms', searchKey: 'rel_ant' },
+        { type: 'Rhymes', searchKey: 'rel_rhy' }
+      ]
     }
-
-    li.appendChild(document.createTextNode(data[i].word))
-    list.appendChild(li)
-
-    // On click, copy text to the clipboard
-    li.addEventListener('click', function () {
-      (t => navigator.clipboard.writeText(t))(this.innerText)
-      this.classList.add('copied')
-      setTimeout(_ => {
-        this.classList.remove('copied')
-      }, 1000)
-    })
-    // On doubleclick, search for the term
-    li.addEventListener('dblclick', function () {
-      (t => { input.value = t; search(t) })(this.innerText)
+  },
+  methods: {
+    pushHistory () {
+      if (history.state == null || history.state.q !== this.searchTerm) {
+        history.pushState({ q: this.searchTerm }, '', `?q=${this.searchTerm}`)
+      }
+    },
+    pullHistory () {
+    },
+    searchForTerm (term) {
+      this.searchTerm = term
+    }
+  },
+  created () {
+    const query = (new URL(window.location)).searchParams.get('q')
+    if (query) {
+      this.searchTerm = query
+    }
+    window.addEventListener('popstate', function () {
+      window.location.reload()
     })
   }
-}
+})
 
-// search runs a query against the api for each type.
-function search (term) {
-  // Push to history only on empty/new query.
-  if (history.state == null || history.state.q !== term) {
-    history.pushState({ q: term }, '', `?q=${term}`)
-  }
-  Object.keys(types).forEach(type => {
-    var query = api.replace('{1}', types[type]).replace('{2}', term)
-    fetch(query)
-      .then(response => response.json())
-      .then(data => populate(type, data))
-  })
-}
+app.component('item', {
+  props: ['word', 'definitions'],
+  emits: ['search-for-term'],
+  data () {
+    return {
+      classObject: {
+        copied: false
+      }
+    }
+  },
+  methods: {
+    copyToClipboard () {
+      navigator.clipboard.writeText(this.word)
+      this.classObject.copied = true
+      setTimeout(_ => { this.classObject.copied = false }, 1000)
+    }
+  },
+  template: `<li
+    :title="definitions"
+    @click="copyToClipboard"
+    @dblclick="$emit('search-for-term', this.word)"
+    :class="classObject"
+    >
+    {{ word }}
+  </li>`
+})
+
+app.component('column', {
+  props: ['type', 'searchKey', 'searchTerm'],
+  emits: ['search-for-term'],
+  data () {
+    return {
+      classObject: {
+        collapsed: false
+      },
+      orderByName: false,
+      results: []
+    }
+  },
+  methods: {
+    toggleCollapse () {
+      this.classObject.collapsed = !this.classObject.collapsed
+    },
+    invertOrder () {
+      this.orderByName = !this.orderByName
+
+      if (this.orderByName) {
+        this.results.sort((a, b) => {
+          const fa = a.word.toLowerCase()
+          const fb = b.word.toLowerCase()
+
+          if (fa < fb) return -1
+          if (fa > fb) return 1
+          return 0
+        })
+      } else {
+        this.results.sort((a, b) => {
+          return b.score - a.score
+        })
+      }
+    },
+    search () {
+      if (this.searchTerm === '') return
+
+      fetch(`https://api.datamuse.com/words?${this.searchKey}=${this.searchTerm}&md=d`)
+        .then(response => response.json())
+        // joins the definitions for better viewing
+        .then(results => results.map(result => {
+          if (result.defs) result.defs = result.defs.join('\n').replaceAll('\t', ':')
+          return result
+        }))
+        .then(results => {
+          this.results = results
+        })
+    },
+    searchForTerm (term) {
+      this.$emit('search-for-term', term)
+    }
+  },
+  created () { this.search() },
+  watch: {
+    searchTerm () { this.search() }
+  },
+  template: `
+    <div :id="type" :class="classObject" >
+    <h2 @click="toggleCollapse">{{type}}
+      <span @click.stop="invertOrder">
+      &nbsp;
+      <template v-if="orderByName"> ↑ </template>
+      <template v-else> ↓ </template>
+      &nbsp;
+      </span>
+    </h2>
+    <ul>
+      <item
+        v-for="result in results"
+        :definition="result.defs"
+        :word="result.word"
+        @search-for-term="searchForTerm"
+        >
+      </item>
+    </ul>
+  </div>`
+})
+
+app.mount('#app')
