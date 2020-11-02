@@ -1,4 +1,4 @@
-/* global Vue fetch history $emit */
+/* global Vue fetch history */
 'use strict'
 
 const app = Vue.createApp({
@@ -9,19 +9,29 @@ const app = Vue.createApp({
         { type: 'Synonyms', searchKey: 'rel_syn' },
         { type: 'Antonyms', searchKey: 'rel_ant' },
         { type: 'Rhymes', searchKey: 'rel_rhy' }
-      ]
+      ],
+      definitionSearchKey: 'sp',
+      definitions: ''
     }
   },
   methods: {
+    searchDefinition () {
+      fetch(`https://api.datamuse.com/words?sp=${this.searchTerm}&md=d`)
+        .then(response => response.json())
+        .then(results => {
+          console.log(results)
+          this.definitions = results[0].defs
+        })
+    },
     pushHistory () {
       if (history.state == null || history.state.q !== this.searchTerm) {
         history.pushState({ q: this.searchTerm }, '', `?q=${this.searchTerm}`)
       }
-    },
-    pullHistory () {
+      this.searchDefinition()
     },
     searchForTerm (term) {
       this.searchTerm = term
+      this.searchDefinition()
     }
   },
   created () {
@@ -29,6 +39,7 @@ const app = Vue.createApp({
     if (query) {
       this.searchTerm = query
     }
+    this.searchDefinition()
     window.addEventListener('popstate', function () {
       window.location.reload()
     })

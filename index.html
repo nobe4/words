@@ -14,6 +14,11 @@
         @change="pushHistory"
         v-model.lazy.trim="searchTerm"
       />
+      <details>
+        <summary>Definitions</summary>
+        <p v-for="definition in definitions">{{definition}}</p>
+      </details>
+
       <div id="results">
         <column
           v-for="column in columns"
