@@ -131,7 +131,7 @@ app.component('column', {
     <ul>
       <item
         v-for="result in results"
-        :definition="result.defs"
+        :definitions="result.defs"
         :word="result.word"
         @search-for-term="searchForTerm"
         >
