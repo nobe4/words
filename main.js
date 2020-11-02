@@ -91,7 +91,9 @@ app.component('column', {
     },
     invertOrder () {
       this.orderByName = !this.orderByName
-
+      this.order()
+    },
+    order () {
       if (this.orderByName) {
         this.results.sort((a, b) => {
           const fa = a.word.toLowerCase()
@@ -119,6 +121,7 @@ app.component('column', {
         }))
         .then(results => {
           this.results = results
+          this.order()
         })
     },
     searchForTerm (term) {
