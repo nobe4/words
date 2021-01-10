@@ -16,12 +16,15 @@ const app = Vue.createApp({
   },
   methods: {
     searchDefinition () {
-      fetch(`https://api.datamuse.com/words?sp=${this.searchTerm}&md=d`)
-        .then(response => response.json())
-        .then(results => {
-          console.log(results)
-          this.definitions = results[0].defs
-        })
+      if (this.searchTerm) {
+        fetch(`https://api.datamuse.com/words?sp=${this.searchTerm}&md=d`)
+          .then(response => response.json())
+          .then(results => {
+            if (results.length > 0) {
+              this.definitions = results[0].defs
+            }
+          })
+      }
     },
     pushHistory () {
       if (history.state == null || history.state.q !== this.searchTerm) {
