@@ -21,7 +21,7 @@ const app = Vue.createApp({
           .then((response) => response.json())
           .then((results) => {
             if (results.length > 0) {
-              this.definitions = results[0].defs;
+              this.definitions = results[0].defs.map((x) => x.split("\t"));
               this.pushHistory();
             }
           });
@@ -31,7 +31,6 @@ const app = Vue.createApp({
       if (history.state == null || history.state.q !== this.searchTerm) {
         history.pushState({ q: this.searchTerm }, "", `?q=${this.searchTerm}`);
       }
-      this.searchDefinition();
     },
     searchForTerm(term) {
       this.searchTerm = term;
@@ -126,7 +125,7 @@ app.component("column", {
         .then((results) =>
           results.map((result) => {
             if (result.defs)
-              result.defs = result.defs.join("\n").replaceAll("\t", ":");
+              result.defs = result.defs.join("\n").replaceAll("\t", ": ");
             return result;
           })
         )

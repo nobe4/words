@@ -12,12 +12,14 @@
         type="text"
         :autofocus="'autofocus'"
         placeholder="type and press enter"
-        @change="pushHistory"
+        @change="searchDefinition"
         v-model.lazy.trim="searchTerm"
       />
       <details>
         <summary>Definitions</summary>
-        <p v-for="definition in definitions">{{definition}}</p>
+        <p v-for="definition in definitions">
+          {{definition[0]}}: {{definition[1]}}
+        </p>
       </details>
 
       <div id="more">
