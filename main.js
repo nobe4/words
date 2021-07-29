@@ -1,70 +1,73 @@
 /* global Vue fetch history */
-'use strict'
+"use strict";
 
 const app = Vue.createApp({
-  data () {
+  data() {
     return {
-      searchTerm: '',
+      searchTerm: "",
       columns: [
-        { type: 'Synonyms', searchKey: 'rel_syn' },
-        { type: 'Antonyms', searchKey: 'rel_ant' },
-        { type: 'Rhymes', searchKey: 'rel_rhy' }
+        { type: "Synonyms", searchKey: "rel_syn" },
+        { type: "Antonyms", searchKey: "rel_ant" },
+        { type: "Rhymes", searchKey: "rel_rhy" },
       ],
-      definitionSearchKey: 'sp',
-      definitions: ''
-    }
+      definitionSearchKey: "sp",
+      definitions: "",
+    };
   },
   methods: {
-    searchDefinition () {
+    searchDefinition() {
       if (this.searchTerm) {
         fetch(`https://api.datamuse.com/words?sp=${this.searchTerm}&md=d`)
-          .then(response => response.json())
-          .then(results => {
+          .then((response) => response.json())
+          .then((results) => {
             if (results.length > 0) {
-              this.definitions = results[0].defs
+              this.definitions = results[0].defs;
+              this.pushHistory();
             }
-          })
+          });
       }
     },
-    pushHistory () {
+    pushHistory() {
       if (history.state == null || history.state.q !== this.searchTerm) {
-        history.pushState({ q: this.searchTerm }, '', `?q=${this.searchTerm}`)
+        history.pushState({ q: this.searchTerm }, "", `?q=${this.searchTerm}`);
       }
-      this.searchDefinition()
+      this.searchDefinition();
     },
-    searchForTerm (term) {
-      this.searchTerm = term
-      this.searchDefinition()
-    }
+    searchForTerm(term) {
+      this.searchTerm = term;
+      this.searchDefinition();
+    },
   },
-  created () {
-    const query = (new URL(window.location)).searchParams.get('q')
+  created() {
+    const query = new URL(window.location).searchParams.get("q");
     if (query) {
-      this.searchTerm = query
+      this.searchTerm = query;
     }
-    this.searchDefinition()
-    window.addEventListener('popstate', function () {
-      window.location.reload()
-    })
-  }
-})
+    this.searchDefinition();
+    window.addEventListener("popstate", function () {
+      window.location.reload();
+    });
+  },
+});
 
-app.component('item', {
-  props: ['word', 'definitions'],
-  emits: ['search-for-term'],
-  data () {
+app.component("item", {
+  props: ["word", "definitions"],
+  emits: ["search-for-term"],
+  data() {
     return {
       classObject: {
-        copied: false
-      }
-    }
+        copied: false,
+      },
+    };
   },
   methods: {
-    copyToClipboard () {
-      navigator.clipboard.writeText(this.word)
-      this.classObject.copied = true
-      setTimeout(_ => { this.classObject.copied = false }, 1000)
-    }
+    copyToClipboard() {
+      navigator.clipboard.writeText(this.word);
+      this.classObject.copied = true;
+      setTimeout((_) => {
+        this.classObject.copied = false;
+      }, 1000);
+    },
   },
   template: `<li
     :title="definitions"
@@ -73,67 +76,76 @@ app.component('item', {
     :class="classObject"
     >
     {{ word }}
-  </li>`
-})
+  </li>`,
+});
 
-app.component('column', {
-  props: ['type', 'searchKey', 'searchTerm'],
-  emits: ['search-for-term'],
-  data () {
+app.component("column", {
+  props: ["type", "searchKey", "searchTerm"],
+  emits: ["search-for-term"],
+  data() {
     return {
       classObject: {
-        collapsed: false
+        collapsed: false,
       },
       orderByName: false,
-      results: []
-    }
+      results: [],
+    };
   },
   methods: {
-    toggleCollapse () {
-      this.classObject.collapsed = !this.classObject.collapsed
+    toggleCollapse() {
+      this.classObject.collapsed = !this.classObject.collapsed;
     },
-    invertOrder () {
-      this.orderByName = !this.orderByName
-      this.order()
+    invertOrder() {
+      this.orderByName = !this.orderByName;
+      this.order();
     },
-    order () {
+    order() {
       if (this.orderByName) {
         this.results.sort((a, b) => {
-          const fa = a.word.toLowerCase()
-          const fb = b.word.toLowerCase()
+          const fa = a.word.toLowerCase();
+          const fb = b.word.toLowerCase();
 
-          if (fa < fb) return -1
-          if (fa > fb) return 1
-          return 0
-        })
+          if (fa < fb) return -1;
+          if (fa > fb) return 1;
+          return 0;
+        });
       } else {
         this.results.sort((a, b) => {
-          return b.score - a.score
-        })
+          return b.score - a.score;
+        });
       }
     },
-    search () {
-      if (this.searchTerm === '') return
+    search() {
+      if (this.searchTerm === "") return;
 
-      fetch(`https://api.datamuse.com/words?${this.searchKey}=${this.searchTerm}&md=d`)
-        .then(response => response.json())
+      fetch(
+        `https://api.datamuse.com/words?${this.searchKey}=${this.searchTerm}&md=d`
+      )
+        .then((response) => response.json())
         // joins the definitions for better viewing
-        .then(results => results.map(result => {
-          if (result.defs) result.defs = result.defs.join('\n').replaceAll('\t', ':')
-          return result
-        }))
-        .then(results => {
-          this.results = results
-          this.order()
-        })
+        .then((results) =>
+          results.map((result) => {
+            if (result.defs)
+              result.defs = result.defs.join("\n").replaceAll("\t", ":");
+            return result;
+          })
+        )
+        .then((results) => {
+          this.results = results;
+          this.order();
+        });
     },
-    searchForTerm (term) {
-      this.$emit('search-for-term', term)
-    }
+    searchForTerm(term) {
+      this.$emit("search-for-term", term);
+    },
   },
-  created () { this.search() },
+  created() {
+    this.search();
+  },
   watch: {
-    searchTerm () { this.search() }
+    searchTerm() {
+      this.search();
+    },
   },
   template: `
     <div :id="type" :class="classObject" >
@@ -154,7 +166,7 @@ app.component('column', {
         >
       </item>
     </ul>
-  </div>`
-})
+  </div>`,
+});
 
-app.mount('#app')
+app.mount("#app");

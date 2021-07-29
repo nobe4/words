@@ -20,6 +20,14 @@
         <p v-for="definition in definitions">{{definition}}</p>
       </details>
 
+      <div id="more">
+        <a
+          target="_blank"
+          :href="'https://www.thesaurus.com/browse/' + searchTerm"
+          >More</a
+        >
+      </div>
+
       <div id="results">
         <column
           v-for="column in columns"

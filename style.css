@@ -24,6 +24,13 @@ summary {
   cursor: pointer;
 }
 
+#more {
+  font-size: 0.8em;
+  width: 90%;
+  margin: auto;
+  text-align: right;
+}
+
 #results {
   display: flex;
   justify-content: space-between;
