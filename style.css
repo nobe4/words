@@ -20,6 +20,10 @@ details {
   margin: auto;
 }
 
+summary {
+  cursor: pointer;
+}
+
 #results {
   display: flex;
   justify-content: space-between;
