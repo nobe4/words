@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/nobe4/words#readme",
   "dependencies": {
-    "serve": "^11.3.2"
+    "serve": "^14.1.1"
   }
 }
